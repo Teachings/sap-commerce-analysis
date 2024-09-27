@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JSON Environment Comparison</title>
-    <!-- Bootstrap from CDN -->
+    <title>Compare JSON Environments</title>
+    <link href="/static/style.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <div class="container mt-5">
@@ -14,37 +13,18 @@
             <h2 class="text-center">Compare JSON Environments</h2>
             <p class="text-center">Upload JSON files from two environments to compare keys and values.</p>
 
-            <!-- File upload form -->
-            <form id="upload-form" class="text-center mb-4">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="file1" class="form-label">Environment 1 (JSON)</label>
-                        <input class="form-control" type="file" id="file1" required>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="file2" class="form-label">Environment 2 (JSON)</label>
-                        <input class="form-control" type="file" id="file2" required>
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-primary btn-lg">Compare</button>
-            </form>
-
-            <!-- Filter properties -->
-            <div class="row mb-4">
-                <div class="col-md-12">
-                    <label for="filter" class="form-label">Filter Properties</label>
-                    <input type="text" id="filter" class="form-control" placeholder="Enter property name to filter...">
-                </div>
+            <div class="mb-3">
+                <input type="file" id="file1" class="form-control mb-2" required>
+                <input type="file" id="file2" class="form-control mb-2" required>
+                <input type="text" id="filter" class="form-control mb-2" placeholder="Enter property name to filter...">
+                <button onclick="compareFiles()" class="btn btn-primary btn-lg">Compare</button>
             </div>
 
-            <!-- Result section -->
             <div id="result" class="mt-5"></div>
         </div>
     </div>
 
-    <!-- Bootstrap JS and dependencies -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Link to your custom JavaScript -->
     <script src="/static/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
