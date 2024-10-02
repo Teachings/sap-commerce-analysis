@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, Query
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -43,13 +43,15 @@ def process_common_keys(env1_data, env2_data):
 
 
 # Function to parse the log and extract errors
-def parse_log_file(log_content):
+def parse_log_file(log_content, impex_only=False):
     errors = []
-    # Define patterns to extract errors and ImpEx failures
+    
+    # Define patterns to extract log lines with ImpEx file paths
     log_pattern = re.compile(r'{"instant":.*?"thread":"(.*?)".*?"level":"(ERROR)".*?"loggerName":"(.*?)".*?"message":"(.*?)","endOfBatch"')
-    impex_failure_pattern = re.compile(r'ImpExException: (.*?) Aborting further passes')
-    failed_lines_pattern = re.compile(r'Finally could not import (\d+) lines')
-
+    
+    # Pattern to capture references to actual .impex file paths
+    impex_file_pattern = re.compile(r'(\S+\.impex)')
+    
     for line in log_content.splitlines():
         match = log_pattern.search(line)
         if match:
@@ -59,28 +61,32 @@ def parse_log_file(log_content):
                 "loggerName": match.group(3),
                 "message": match.group(4)
             }
-            impex_failure_match = impex_failure_pattern.search(line)
-            if impex_failure_match:
-                error_data["cause"] = impex_failure_match.group(1)
-            
-            failed_lines_match = failed_lines_pattern.search(line)
-            if failed_lines_match:
-                error_data["failed_lines"] = failed_lines_match.group(1)
 
+            # Filter lines with .impex file references if 'impex_only' is true
+            if impex_only:
+                if not impex_file_pattern.search(line):
+                    continue  # Skip non-ImpEx file lines
+
+            # If we pass the filter, we add the error data
             errors.append(error_data)
-    
+
     return errors
 
+
 @app.post("/parse/logs")
-async def parse_logs(file: UploadFile = File(...)):
+async def parse_logs(
+    file: UploadFile = File(...),
+    impex: bool = Query(False)  # Add 'impex' query parameter with default value False
+):
     # Read the uploaded file content
     content = await file.read()
     # Decode the file content (assuming it's UTF-8)
     log_content = content.decode('utf-8')
-    # Parse the log content
-    errors = parse_log_file(log_content)
+    # Parse the log content, passing the 'impex' flag to filter logs
+    errors = parse_log_file(log_content, impex_only=impex)
     # Return the parsed errors as JSON
     return JSONResponse(content=errors)
+
 
 @app.get("/logs", response_class=HTMLResponse)
 async def serve_logs_page():
