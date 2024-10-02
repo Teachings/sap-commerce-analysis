@@ -41,7 +41,6 @@ def process_common_keys(env1_data, env2_data):
         for key in common_keys if env1_data[key] == env2_data[key]
     }
 
-
 # Function to parse the log and extract errors
 def parse_log_file(log_content, impex_only=False):
     errors = []
@@ -72,7 +71,7 @@ def parse_log_file(log_content, impex_only=False):
 
     return errors
 
-
+# Parse logs from uploaded log file, with optional filtering for ImpEx related logs
 @app.post("/parse/logs")
 async def parse_logs(
     file: UploadFile = File(...),
@@ -87,32 +86,43 @@ async def parse_logs(
     # Return the parsed errors as JSON
     return JSONResponse(content=errors)
 
-
-@app.get("/logs", response_class=HTMLResponse)
-async def serve_logs_page():
-    with open("app/static/logs.html", "r") as f:
-        content = f.read()
-    return HTMLResponse(content=content)
-
+# Compare two JSON files to find missing keys between environments
 @app.post("/compare/missing-keys")
 async def missing_keys(file1: UploadFile = File(...), file2: UploadFile = File(...)):
     env1_data, env2_data = json.loads(await file1.read()), json.loads(await file2.read())
     result = process_missing_keys(env1_data, env2_data)
     return JSONResponse(content=result)
 
+# Compare two JSON files to find differences in values between environments
 @app.post("/compare/value-differences")
 async def value_differences(file1: UploadFile = File(...), file2: UploadFile = File(...)):
     env1_data, env2_data = json.loads(await file1.read()), json.loads(await file2.read())
     result = process_value_differences(env1_data, env2_data)
     return JSONResponse(content=result)
 
+# Compare two JSON files to find common keys with identical values between environments
 @app.post("/compare/common-keys")
 async def common_keys(file1: UploadFile = File(...), file2: UploadFile = File(...)):
     env1_data, env2_data = json.loads(await file1.read()), json.loads(await file2.read())
     result = process_common_keys(env1_data, env2_data)
     return JSONResponse(content=result)
 
+# Serve the default homepage for properties file comparison
 @app.get("/", response_class=HTMLResponse)
 async def serve_static():
     with open("app/static/index.html", "r") as f:
         return HTMLResponse(content=f.read())
+
+# Serve the page for logs analysis
+@app.get("/logs", response_class=HTMLResponse)
+async def serve_logs_page():
+    with open("app/static/logs.html", "r") as f:
+        content = f.read()
+    return HTMLResponse(content=content)
+
+# Serve a static JavaScript file
+@app.get("/script", response_class=HTMLResponse)
+async def serve_logs_page():
+    with open("app/static/json_dump_script.js", "r") as f:
+        content = f.read()
+    return HTMLResponse(content=content)
